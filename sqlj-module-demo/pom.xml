@@ -74,6 +74,27 @@
 
     <build>
         <plugins>
+
+            <!-- Deutsch: committed generated sources einbinden -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-committed-sqlj-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>add-source</goal></goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/generated-sources/sqlj</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
             <!-- Deutsch:
                  AntRun-Plugin wird verwendet, um sqlj-Befehle direkt auszuführen.
                  Vorteil: funktioniert auf Windows und Linux ohne Bash/CRLF-Probleme.
