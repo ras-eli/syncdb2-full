@@ -1,72 +1,60 @@
 name: SQLJ Translate & Commit
 
 on:
-  workflow_dispatch:         # Deutsch: Manuell starten
+  workflow_dispatch:         # Deutsch: Manuelle Ausführung möglich
   push:
     paths:
-      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Modulpfad überwachen
+      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Nur starten, wenn SQLJ-Dateien geändert werden
 
 permissions:
-  contents: write            # Deutsch: Commit/Push erlauben
+  contents: write            # Deutsch: Erlaubt Commit/Push mit GITHUB_TOKEN
 
 jobs:
   translate:
-    runs-on: ubuntu-latest   # Deutsch: Linux-Runner
+    runs-on: ubuntu-latest   # Deutsch: Standard GitHub Runner
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Deutsch: komplette Historie
+          fetch-depth: 0     # Deutsch: gesamte Historie ziehen
 
-      - name: Pull Db2 image (fixed tag)
-        run: docker pull ibmcom/db2:11.5.8.0   # Deutsch: reproduzierbare Version
+      - name: Build custom translator image
+        run: docker build -t sqlj-translator -f .github/sqlj-translator.Dockerfile .
 
       - name: Translate SQLJ in Docker (offline, no checker)
         run: |
-          # Deutsch: Zielordner im Modul vorbereiten
+          # Deutsch: Zielordner vorbereiten
           mkdir -p sqlj-module-demo/src/main/generated-sources/sqlj
-
-          # Deutsch: Container starten, EntryPoint überschreiben, Lizenz akzeptieren
-          docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" ibmcom/db2:11.5.8.0 -lc '
+          # Deutsch: Container starten mit unserem Custom-Image
+          docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" sqlj-translator -lc '
             set -e
-
-            # Deutsch: JRE 11 ohne Paketmanager installieren (Adoptium Binary)
-            mkdir -p /opt/jre
-            curl -L -o /tmp/jre11.tgz https://github.com/adoptium/temurin11-binaries/releases/latest/download/OpenJDK11U-jre_x64_linux_hotspot.tar.gz
-            tar -xzf /tmp/jre11.tgz -C /opt/jre --strip-components=1
-            export PATH=/opt/jre/bin:$PATH
-            java -version
-
-            # Deutsch: Modulpfade
             MOD="/work/sqlj-module-demo"
             OUT="$MOD/src/main/generated-sources/sqlj"
             SRC="$MOD/src/main/sqlj"
-
             mkdir -p "$OUT"
-
             if [ -d "$SRC" ]; then
-              # Deutsch: Alle .sqlj-Dateien offline (ohne DB-Checker) übersetzen
+              # Deutsch: Alle .sqlj-Dateien übersetzen (offline, ohne DB-Checker)
               find "$SRC" -name "*.sqlj" -print0 | \
               xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
                 -d "$OUT" \
                 -status -noChecker -profile db2 -collection APP "{}"
             else
-              echo "No $SRC directory found; skipping."
+              echo "Kein SQLJ-Quellverzeichnis gefunden."
             fi
           '
 
       - name: Show changes
-        run: git status --porcelain   # Deutsch: Änderungen anzeigen
+        run: git status --porcelain   # Deutsch: Prüfen, ob Dateien erzeugt wurden
 
       - name: Commit & Push if generated sources changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            git config user.name  "github-actions[bot]"          # Deutsch: CI-Author
+            git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add sqlj-module-demo/src/main/generated-sources/sqlj
-            git commit -m "ci: translate SQLJ -> Java (offline)"
+            git commit -m "ci: SQLJ-Übersetzung -> Java (offline)"
             git push
           else
-            echo "No changes to commit."
+            echo "Keine Änderungen zum Commit."
           fi
