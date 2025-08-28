@@ -24,32 +24,30 @@ jobs:
 
       - name: Translate SQLJ in Docker (offline, no checker)
         run: |
+          # Deutsch: Zielordner vorbereiten
           mkdir -p src/main/generated-sources/sqlj
-          docker run --rm \
-            --entrypoint /bin/bash \           # Deutsch: EntryPoint überschreiben (keine DB2-Initialisierung)
-            -e LICENSE=accept \                # Deutsch: Lizenzannahme für das IBM-Image
-            -v "$PWD:/work" \
-            ibmcom/db2:11.5.8.0 -lc '
-              set -e
-              mkdir -p /work/src/main/generated-sources/sqlj
-              if [ -d /work/src/main/sqlj ]; then
-                # Deutsch: Alle .sqlj-Dateien offline (ohne DB-Checker) übersetzen
-                find /work/src/main/sqlj -name "*.sqlj" -print0 | \
-                xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
-                  -d /work/src/main/generated-sources/sqlj \
-                  -status -noChecker -profile db2 -collection APP "{}"
-              else
-                echo "No src/main/sqlj directory found; skipping."
-              fi
-            '
+          # Deutsch: Container starten, EntryPoint überschreiben, Lizenz akzeptieren
+          docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" ibmcom/db2:11.5.8.0 -lc '
+            set -e
+            mkdir -p /work/src/main/generated-sources/sqlj
+            if [ -d /work/src/main/sqlj ]; then
+              # Deutsch: Alle .sqlj-Dateien offline (ohne DB-Checker) übersetzen
+              find /work/src/main/sqlj -name "*.sqlj" -print0 | \
+              xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
+                -d /work/src/main/generated-sources/sqlj \
+                -status -noChecker -profile db2 -collection APP "{}"
+            else
+              echo "No src/main/sqlj directory found; skipping."
+            fi
+          '
 
       - name: Show changes
-        run: git status --porcelain   # Deutsch: Anzeigen, ob generierte Dateien entstanden sind
+        run: git status --porcelain   # Deutsch: Prüfen, ob generierte Dateien entstanden sind
 
       - name: Commit & Push if generated sources changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            # Deutsch: Autor für CI-Commit setzen
+            # Deutsch: Commit-Author für CI setzen
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             # Deutsch: Nur generierte Quellen committen
