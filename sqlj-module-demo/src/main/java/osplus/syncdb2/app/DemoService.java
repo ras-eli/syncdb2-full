@@ -23,13 +23,13 @@ public class DemoService {
     public void demo() throws SQLException {
         try (Connection con = dataSource.getConnection()) {
             // Deutsch: Beispielaufruf (IDs und Werte sind nur Demo)
-            new osplus.syncdb2.sqlj.PersonInsert(1, "Alice").execute(con);
-            new osplus.syncdb2.sqlj.PersonUpdate(1, "Alicia").execute(con);
-            new osplus.syncdb2.sqlj.PersonDelete(1).execute(con);
-
-            new osplus.syncdb2.sqlj.ProductInsert(101, "Phone", new java.math.BigDecimal("399.00")).execute(con);
-            new osplus.syncdb2.sqlj.ProductUpdate(101, "Smartphone", new java.math.BigDecimal("449.00")).execute(con);
-            new osplus.syncdb2.sqlj.ProductDelete(101).execute(con);
+//            new osplus.syncdb2.sqlj.PersonInsert(1, "Alice").execute(con);
+//            new osplus.syncdb2.sqlj.PersonUpdate(1, "Alicia").execute(con);
+//            new osplus.syncdb2.sqlj.PersonDelete(1).execute(con);
+//
+//            new osplus.syncdb2.sqlj.ProductInsert(101, "Phone", new java.math.BigDecimal("399.00")).execute(con);
+//            new osplus.syncdb2.sqlj.ProductUpdate(101, "Smartphone", new java.math.BigDecimal("449.00")).execute(con);
+//            new osplus.syncdb2.sqlj.ProductDelete(101).execute(con);
         }
     }
 }
