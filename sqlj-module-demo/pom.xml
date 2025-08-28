@@ -8,9 +8,14 @@
          Dieses POM ist so vorbereitet, dass SQLJ-Dateien (*.sqlj) automatisch
          während des Builds übersetzt und die erzeugten Java-Sourcen kompiliert werden.
     -->
-    <groupId>osplus.syncdb2</groupId>
+    <parent>
+        <groupId>osplus.syncdb2</groupId>
+        <artifactId>syncdb2</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>sqlj-module-demo</artifactId>
-    <version>1.0.0</version>
+
 
     <properties>
         <!-- Deutsch:
@@ -63,7 +68,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
-            <version>3.3.3</version>
+
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
