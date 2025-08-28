@@ -24,3 +24,4 @@ TestResults.xml
 =======
 **/.idea/**
 >>>>>>> 84e4169 (init syncdb2-full project)
+**/target/**

@@ -77,10 +77,10 @@ public class SendToMqRepository {
             //
             // Unten ist die Version mit direkten Methoden (status()/errorMessage()) gezeigt.
             // ------------------------------------------------------------
-            var r = SendToMq_Sqlj.callSendToMq(connection, envelopeJson); // <-- Ihre SQLJ-Klasse
+            // var r = SendToMq_Sqlj.callSendToMq(connection, envelopeJson); // <-- Ihre SQLJ-Klasse
             // Wenn Ihr Result anders heißt/gebaut ist, bitte hier mappen:
-            int status = r.getStatus();            // oder r.status()
-            String err = r.getErrorMessage();      // oder r.errorMessage()
+            int status = 0 ;//r.getStatus();            // oder r.status()
+            String err = "";//r.getErrorMessage();      // oder r.errorMessage()
             return new Result(status, err);
         }
     }

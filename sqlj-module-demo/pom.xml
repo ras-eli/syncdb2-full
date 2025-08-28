@@ -95,132 +95,132 @@
             </plugin>
 
 
-            <!-- Deutsch:
-                 AntRun-Plugin wird verwendet, um sqlj-Befehle direkt auszuführen.
-                 Vorteil: funktioniert auf Windows und Linux ohne Bash/CRLF-Probleme.
-            -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <!-- Deutsch:
-                         Offline-Übersetzung (kein Checker, keine DB-Verbindung).
-                         Dies ist die Standardausführung ohne Profil.
-                    -->
-                    <execution>
-                        <id>translate-sqlj-offline</id>
-                        <phase>generate-sources</phase>
-                        <goals><goal>run</goal></goals>
-                        <configuration>
-                            <target name="sqlj-offline">
-                                <mkdir dir="${sqlj.generated.dir}" />
-                                <!-- Deutsch: Prüfe, ob der Übersetzer existiert (nur unter Windows sinnvoll). -->
-                                <condition property="is.windows">
-                                    <os family="windows"/>
-                                </condition>
-                                <condition property="sqlj.exists">
-                                    <and>
-                                        <isset property="is.windows"/>
-                                        <available file="${sqlj.exec}"/>
-                                    </and>
-                                </condition>
-                                <!-- Optional: Wenn Windows + Datei fehlt, sauberer Fehler -->
-                                <fail message="SQLJ-Übersetzer nicht gefunden: ${sqlj.exec}. Bitte -Dsqlj.exec=... korrekt setzen."
-                                      unless="sqlj.exists">
-                                    <condition><isset property="is.windows"/></condition>
-                                </fail>
-                                <!-- Windows: über cmd.exe starten (Batch) -->
-                                <apply osfamily="windows" executable="cmd" vmlauncher="false" parallel="false" failonerror="true">
-                                    <arg value="/c"/>
-                                    <arg value="${sqlj.exec}"/>
-                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
-                                    <arg value="-status"/>
-                                    <arg value="-noChecker"/>
-                                    <arg value="-profile"/><arg value="db2"/>
-                                    <arg value="-collection"/><arg value="${db.collection}"/>
-                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
-                                        <include name="**/*.sqlj"/>
-                                    </fileset>
-                                </apply>
+<!--            &lt;!&ndash; Deutsch:-->
+<!--                 AntRun-Plugin wird verwendet, um sqlj-Befehle direkt auszuführen.-->
+<!--                 Vorteil: funktioniert auf Windows und Linux ohne Bash/CRLF-Probleme.-->
+<!--            &ndash;&gt;-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-antrun-plugin</artifactId>-->
+<!--                <version>3.1.0</version>-->
+<!--                <executions>-->
+<!--                    &lt;!&ndash; Deutsch:-->
+<!--                         Offline-Übersetzung (kein Checker, keine DB-Verbindung).-->
+<!--                         Dies ist die Standardausführung ohne Profil.-->
+<!--                    &ndash;&gt;-->
+<!--                    <execution>-->
+<!--                        <id>translate-sqlj-offline</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals><goal>run</goal></goals>-->
+<!--                        <configuration>-->
+<!--                            <target name="sqlj-offline">-->
+<!--                                <mkdir dir="${sqlj.generated.dir}" />-->
+<!--                                &lt;!&ndash; Deutsch: Prüfe, ob der Übersetzer existiert (nur unter Windows sinnvoll). &ndash;&gt;-->
+<!--                                <condition property="is.windows">-->
+<!--                                    <os family="windows"/>-->
+<!--                                </condition>-->
+<!--                                <condition property="sqlj.exists">-->
+<!--                                    <and>-->
+<!--                                        <isset property="is.windows"/>-->
+<!--                                        <available file="${sqlj.exec}"/>-->
+<!--                                    </and>-->
+<!--                                </condition>-->
+<!--                                &lt;!&ndash; Optional: Wenn Windows + Datei fehlt, sauberer Fehler &ndash;&gt;-->
+<!--                                <fail message="SQLJ-Übersetzer nicht gefunden: ${sqlj.exec}. Bitte -Dsqlj.exec=... korrekt setzen."-->
+<!--                                      unless="sqlj.exists">-->
+<!--                                    <condition><isset property="is.windows"/></condition>-->
+<!--                                </fail>-->
+<!--                                &lt;!&ndash; Windows: über cmd.exe starten (Batch) &ndash;&gt;-->
+<!--                                <apply osfamily="windows" executable="cmd" vmlauncher="false" parallel="false" failonerror="true">-->
+<!--                                    <arg value="/c"/>-->
+<!--                                    <arg value="${sqlj.exec}"/>-->
+<!--                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>-->
+<!--                                    <arg value="-status"/>-->
+<!--                                    <arg value="-noChecker"/>-->
+<!--                                    <arg value="-profile"/><arg value="db2"/>-->
+<!--                                    <arg value="-collection"/><arg value="${db.collection}"/>-->
+<!--                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">-->
+<!--                                        <include name="**/*.sqlj"/>-->
+<!--                                    </fileset>-->
+<!--                                </apply>-->
 
-                                <!-- Unix/Mac: Binary direkt -->
-                                <apply osfamily="unix" executable="${sqlj.exec}" parallel="false" failonerror="true">
-                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
-                                    <arg value="-status"/>
-                                    <arg value="-noChecker"/>
-                                    <arg value="-profile"/><arg value="db2"/>
-                                    <arg value="-collection"/><arg value="${db.collection}"/>
-                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
-                                        <include name="**/*.sqlj"/>
-                                    </fileset>
-                                </apply>
-                            </target>
-                        </configuration>
-                    </execution>
+<!--                                &lt;!&ndash; Unix/Mac: Binary direkt &ndash;&gt;-->
+<!--                                <apply osfamily="unix" executable="${sqlj.exec}" parallel="false" failonerror="true">-->
+<!--                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>-->
+<!--                                    <arg value="-status"/>-->
+<!--                                    <arg value="-noChecker"/>-->
+<!--                                    <arg value="-profile"/><arg value="db2"/>-->
+<!--                                    <arg value="-collection"/><arg value="${db.collection}"/>-->
+<!--                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">-->
+<!--                                        <include name="**/*.sqlj"/>-->
+<!--                                    </fileset>-->
+<!--                                </apply>-->
+<!--                            </target>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
 
-                    <!-- Deutsch:
-                         Online-Übersetzung (mit Checker, benötigt DB-Verbindung).
-                         Diese Execution ist standardmäßig deaktiviert (skip=true),
-                         wird aber im Profil sqlj-online aktiviert.
-                    -->
-                    <execution>
-                        <id>translate-sqlj-online</id>
-                        <phase>generate-sources</phase>
-                        <goals><goal>run</goal></goals>
-                        <configuration>
-                            <skip>true</skip>
-                            <target name="sqlj-online">
-                                <mkdir dir="${sqlj.generated.dir}" />
+<!--                    &lt;!&ndash; Deutsch:-->
+<!--                         Online-Übersetzung (mit Checker, benötigt DB-Verbindung).-->
+<!--                         Diese Execution ist standardmäßig deaktiviert (skip=true),-->
+<!--                         wird aber im Profil sqlj-online aktiviert.-->
+<!--                    &ndash;&gt;-->
+<!--                    <execution>-->
+<!--                        <id>translate-sqlj-online</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals><goal>run</goal></goals>-->
+<!--                        <configuration>-->
+<!--                            <skip>true</skip>-->
+<!--                            <target name="sqlj-online">-->
+<!--                                <mkdir dir="${sqlj.generated.dir}" />-->
 
-                                <condition property="is.windows">
-                                    <os family="windows"/>
-                                </condition>
-                                <condition property="sqlj.exists">
-                                    <and>
-                                        <isset property="is.windows"/>
-                                        <available file="${sqlj.exec}"/>
-                                    </and>
-                                </condition>
-                                <fail message="SQLJ-Übersetzer nicht gefunden: ${sqlj.exec}. Bitte -Dsqlj.exec=... korrekt setzen."
-                                      unless="sqlj.exists">
-                                    <condition><isset property="is.windows"/></condition>
-                                </fail>
+<!--                                <condition property="is.windows">-->
+<!--                                    <os family="windows"/>-->
+<!--                                </condition>-->
+<!--                                <condition property="sqlj.exists">-->
+<!--                                    <and>-->
+<!--                                        <isset property="is.windows"/>-->
+<!--                                        <available file="${sqlj.exec}"/>-->
+<!--                                    </and>-->
+<!--                                </condition>-->
+<!--                                <fail message="SQLJ-Übersetzer nicht gefunden: ${sqlj.exec}. Bitte -Dsqlj.exec=... korrekt setzen."-->
+<!--                                      unless="sqlj.exists">-->
+<!--                                    <condition><isset property="is.windows"/></condition>-->
+<!--                                </fail>-->
 
-                                <!-- Windows -->
-                                <apply osfamily="windows" executable="cmd" vmlauncher="false" parallel="false" failonerror="true">
-                                    <arg value="/c"/>
-                                    <arg value="${sqlj.exec}"/>
-                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
-                                    <arg value="-status"/>
-                                    <arg value="-url"/><arg value="${db.url}"/>
-                                    <arg value="-user"/><arg value="${db.user}"/>
-                                    <arg value="-password"/><arg value="${db.pass}"/>
-                                    <arg value="-profile"/><arg value="db2"/>
-                                    <arg value="-collection"/><arg value="${db.collection}"/>
-                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
-                                        <include name="**/*.sqlj"/>
-                                    </fileset>
-                                </apply>
+<!--                                &lt;!&ndash; Windows &ndash;&gt;-->
+<!--                                <apply osfamily="windows" executable="cmd" vmlauncher="false" parallel="false" failonerror="true">-->
+<!--                                    <arg value="/c"/>-->
+<!--                                    <arg value="${sqlj.exec}"/>-->
+<!--                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>-->
+<!--                                    <arg value="-status"/>-->
+<!--                                    <arg value="-url"/><arg value="${db.url}"/>-->
+<!--                                    <arg value="-user"/><arg value="${db.user}"/>-->
+<!--                                    <arg value="-password"/><arg value="${db.pass}"/>-->
+<!--                                    <arg value="-profile"/><arg value="db2"/>-->
+<!--                                    <arg value="-collection"/><arg value="${db.collection}"/>-->
+<!--                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">-->
+<!--                                        <include name="**/*.sqlj"/>-->
+<!--                                    </fileset>-->
+<!--                                </apply>-->
 
-                                <!-- Unix/Mac -->
-                                <apply osfamily="unix" executable="${sqlj.exec}" parallel="false" failonerror="true">
-                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
-                                    <arg value="-status"/>
-                                    <arg value="-url"/><arg value="${db.url}"/>
-                                    <arg value="-user"/><arg value="${db.user}"/>
-                                    <arg value="-password"/><arg value="${db.pass}"/>
-                                    <arg value="-profile"/><arg value="db2"/>
-                                    <arg value="-collection"/><arg value="${db.collection}"/>
-                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
-                                        <include name="**/*.sqlj"/>
-                                    </fileset>
-                                </apply>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--                                &lt;!&ndash; Unix/Mac &ndash;&gt;-->
+<!--                                <apply osfamily="unix" executable="${sqlj.exec}" parallel="false" failonerror="true">-->
+<!--                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>-->
+<!--                                    <arg value="-status"/>-->
+<!--                                    <arg value="-url"/><arg value="${db.url}"/>-->
+<!--                                    <arg value="-user"/><arg value="${db.user}"/>-->
+<!--                                    <arg value="-password"/><arg value="${db.pass}"/>-->
+<!--                                    <arg value="-profile"/><arg value="db2"/>-->
+<!--                                    <arg value="-collection"/><arg value="${db.collection}"/>-->
+<!--                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">-->
+<!--                                        <include name="**/*.sqlj"/>-->
+<!--                                    </fileset>-->
+<!--                                </apply>-->
+<!--                            </target>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
             <!-- Deutsch:
                  Stellt sicher, dass die generierten SQLJ-Sourcen auch
