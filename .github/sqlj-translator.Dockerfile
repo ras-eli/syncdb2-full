@@ -1,9 +1,12 @@
+# Deutsch: JRE aus einem schlanken Temurin-Image holen (Stage 1)
+FROM eclipse-temurin:11-jre AS jre
+
+# Deutsch: Basis mit SQLJ-Translator (Stage 2)
 FROM ibmcom/db2:11.5.8.0
 
-# Deutsch: OpenJDK 11 hinzufügen (für den SQLJ-Translator notwendig)
-USER root
-RUN microdnf install -y java-11-openjdk-headless && microdnf clean all
-ENV PATH="/usr/lib/jvm/java-11/bin:${PATH}"
+# Deutsch: JRE in das Db2-Image kopieren, ohne Paketmanager
+COPY --from=jre /opt/java/openjdk /opt/jre
+ENV PATH="/opt/jre/bin:${PATH}"
 
-# Deutsch: Wieder zurück zu db2inst1 falls nötig
+# Deutsch: Als Standardbenutzer weiterarbeiten (sqlj liegt unter /opt/ibm/db2/...)
 USER db2inst1
