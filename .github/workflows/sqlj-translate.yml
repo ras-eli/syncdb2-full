@@ -1,32 +1,32 @@
 name: SQLJ Translate & Commit
 
 on:
-  workflow_dispatch:         # Deutsch: Manuelle Ausführung möglich
+  workflow_dispatch:         # Deutsch: Manuell startbar
   push:
     paths:
-      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Nur starten, wenn SQLJ-Dateien geändert werden
+      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Modulpfad überwachen
 
 permissions:
-  contents: write            # Deutsch: Erlaubt Commit/Push mit GITHUB_TOKEN
+  contents: write            # Deutsch: Commit/Push erlauben
 
 jobs:
   translate:
-    runs-on: ubuntu-latest   # Deutsch: Standard GitHub Runner
+    runs-on: ubuntu-latest   # Deutsch: Standard-Runner
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Deutsch: gesamte Historie ziehen
+          fetch-depth: 0     # Deutsch: volle Historie (saubere Commits)
 
       - name: Build custom translator image
         run: docker build -t sqlj-translator -f .github/sqlj-translator.Dockerfile .
 
-      - name: Translate SQLJ in Docker (offline, no checker)
+      - name: Translate SQLJ in Docker (offline, kein Checker)
         run: |
-          # Deutsch: Zielordner vorbereiten
+          # Deutsch: Zielordner im Modul vorbereiten
           mkdir -p sqlj-module-demo/src/main/generated-sources/sqlj
-          # Deutsch: Container starten mit unserem Custom-Image
+          # Deutsch: Container mit unserem Image starten (ohne DB2-Init dank EntryPoint-Override)
           docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" sqlj-translator -lc '
             set -e
             MOD="/work/sqlj-module-demo"
@@ -34,18 +34,18 @@ jobs:
             SRC="$MOD/src/main/sqlj"
             mkdir -p "$OUT"
             if [ -d "$SRC" ]; then
-              # Deutsch: Alle .sqlj-Dateien übersetzen (offline, ohne DB-Checker)
+              # Deutsch: Alle .sqlj-Dateien offline übersetzen
               find "$SRC" -name "*.sqlj" -print0 | \
               xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
                 -d "$OUT" \
                 -status -noChecker -profile db2 -collection APP "{}"
             else
-              echo "Kein SQLJ-Quellverzeichnis gefunden."
+              echo "Kein SQLJ-Verzeichnis gefunden: $SRC"
             fi
           '
 
       - name: Show changes
-        run: git status --porcelain   # Deutsch: Prüfen, ob Dateien erzeugt wurden
+        run: git status --porcelain   # Deutsch: Änderungen auflisten
 
       - name: Commit & Push if generated sources changed
         run: |
