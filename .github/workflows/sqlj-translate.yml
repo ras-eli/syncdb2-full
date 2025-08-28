@@ -1,0 +1,55 @@
+name: SQLJ Translate & Commit
+
+on:
+  workflow_dispatch:         # اجرای دستی از تب Actions
+  push:
+    paths:
+      - "src/main/sqlj/**"   # با تغییر .sqlj ها خودکار اجرا می‌شود
+
+permissions:
+  contents: write            # اجازهٔ commit/push با GITHUB_TOKEN
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # تاریخچه کامل (برای commit تمیز)
+
+      - name: Pull Db2 image (fixed tag)
+        run: docker pull ibmcom/db2:11.5.8.0
+
+      - name: Translate SQLJ in Docker (offline, no checker)
+        run: |
+          mkdir -p src/main/generated-sources/sqlj
+          docker run --rm -v "$PWD:/work" ibmcom/db2:11.5.8.0 bash -lc '
+            set -e
+            mkdir -p /work/src/main/generated-sources/sqlj
+            if [ -d /work/src/main/sqlj ]; then
+              # Deutsch: Alle .sqlj-Dateien übersetzen (offline, ohne DB-Checker)
+              find /work/src/main/sqlj -name "*.sqlj" -print0 | \
+              xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
+                -d /work/src/main/generated-sources/sqlj \
+                -status -noChecker -profile db2 -collection APP "{}"
+            else
+              echo "No src/main/sqlj directory found; skipping."
+            fi
+          '
+
+      - name: Show changes
+        run: git status --porcelain
+
+      - name: Commit & Push if generated sources changed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add src/main/generated-sources/sqlj
+            git commit -m "ci: translate SQLJ -> Java (offline)"
+            git push
+          else
+            echo "No changes to commit."
+          fi
