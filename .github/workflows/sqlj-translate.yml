@@ -4,7 +4,7 @@ on:
   workflow_dispatch:         # Deutsch: Manuell starten
   push:
     paths:
-      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Nur bei Änderungen an SQLJ im Modul
+      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Modulpfad überwachen
 
 permissions:
   contents: write            # Deutsch: Commit/Push erlauben
@@ -20,30 +20,25 @@ jobs:
           fetch-depth: 0     # Deutsch: komplette Historie
 
       - name: Pull Db2 image (fixed tag)
-        run: docker pull ibmcom/db2:11.5.8.0   # Deutsch: reproduzierbar
+        run: docker pull ibmcom/db2:11.5.8.0   # Deutsch: reproduzierbare Version
 
       - name: Translate SQLJ in Docker (offline, no checker)
         run: |
           # Deutsch: Zielordner im Modul vorbereiten
           mkdir -p sqlj-module-demo/src/main/generated-sources/sqlj
+
           # Deutsch: Container starten, EntryPoint überschreiben, Lizenz akzeptieren
           docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" ibmcom/db2:11.5.8.0 -lc '
             set -e
 
-            # Deutsch: Java-Laufzeit installieren (Image enthält kein Java)
-            if command -v apt-get >/dev/null 2>&1; then
-              apt-get update -y && apt-get install -y openjdk-11-jre-headless
-            elif command -v microdnf >/dev/null 2>&1; then
-              microdnf install -y java-11-openjdk-headless
-            elif command -v yum >/dev/null 2>&1; then
-              yum install -y -q java-11-openjdk-headless
-            else
-              echo "Kein Paketmanager gefunden, Java kann nicht installiert werden." >&2
-              exit 1
-            fi
-            export PATH=/usr/lib/jvm/java-11*/bin:/usr/lib/jvm/jre-11*/bin:$PATH
+            # Deutsch: JRE 11 ohne Paketmanager installieren (Adoptium Binary)
+            mkdir -p /opt/jre
+            curl -L -o /tmp/jre11.tgz https://github.com/adoptium/temurin11-binaries/releases/latest/download/OpenJDK11U-jre_x64_linux_hotspot.tar.gz
+            tar -xzf /tmp/jre11.tgz -C /opt/jre --strip-components=1
+            export PATH=/opt/jre/bin:$PATH
+            java -version
 
-            # Deutsch: Pfade setzen
+            # Deutsch: Modulpfade
             MOD="/work/sqlj-module-demo"
             OUT="$MOD/src/main/generated-sources/sqlj"
             SRC="$MOD/src/main/sqlj"
