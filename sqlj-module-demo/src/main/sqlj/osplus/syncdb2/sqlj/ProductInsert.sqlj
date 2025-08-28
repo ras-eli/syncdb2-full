@@ -1,0 +1,27 @@
+#sqlj 1.5
+package osplus.syncdb2.sqlj;
+
+import java.sql.*;
+import java.math.BigDecimal;
+
+/*
+ * Deutsch:
+ *  Insert in PRODUCT(ID, TITLE, PRICE).
+ */
+public class ProductInsert {
+  private final int id;
+  private final String title;
+  private final BigDecimal price;
+
+  public ProductInsert(int id, String title, BigDecimal price) {
+    this.id = id;
+    this.title = title;
+    this.price = price;
+  }
+
+  public int execute(Connection conn) throws SQLException {
+    int affected = 0;
+    #sql { INSERT INTO PRODUCT (ID, TITLE, PRICE) VALUES (:id, :title, :price) };
+    return affected;
+  }
+}

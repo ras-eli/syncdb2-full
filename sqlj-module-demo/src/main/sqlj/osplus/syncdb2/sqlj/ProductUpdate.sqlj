@@ -1,0 +1,27 @@
+#sqlj 1.5
+package osplus.syncdb2.sqlj;
+
+import java.sql.*;
+import java.math.BigDecimal;
+
+/*
+ * Deutsch:
+ *  Update von TITLE und PRICE in PRODUCT nach ID.
+ */
+public class ProductUpdate {
+  private final int id;
+  private final String title;
+  private final BigDecimal price;
+
+  public ProductUpdate(int id, String title, BigDecimal price) {
+    this.id = id;
+    this.title = title;
+    this.price = price;
+  }
+
+  public int execute(Connection conn) throws SQLException {
+    int affected = 0;
+    #sql { UPDATE PRODUCT SET TITLE = :title, PRICE = :price WHERE ID = :id };
+    return affected;
+  }
+}

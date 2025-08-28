@@ -1,0 +1,271 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Deutsch:
+         Allgemeine Projektdefinition für das SQLJ-Demo-Modul.
+         Dieses POM ist so vorbereitet, dass SQLJ-Dateien (*.sqlj) automatisch
+         während des Builds übersetzt und die erzeugten Java-Sourcen kompiliert werden.
+    -->
+    <groupId>osplus.syncdb2</groupId>
+    <artifactId>sqlj-module-demo</artifactId>
+    <version>1.0.0</version>
+
+    <properties>
+        <!-- Deutsch:
+             Build-Parameter: Java-Version und Ausgabepfade.
+        -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
+        <!-- Deutsch:
+             Verzeichnis für generierte Java-Klassen aus SQLJ-Quellen.
+        -->
+        <sqlj.generated.dir>${project.build.directory}/generated-sources/sqlj</sqlj.generated.dir>
+
+        <!-- Deutsch:
+             Standardwerte für Online-Übersetzung (Checker).
+             Diese Parameter können beim Build per -D überschrieben werden.
+        -->
+        <sqlj.exec>sqlj</sqlj.exec>
+        <db.url>jdbc:db2://localhost:50000/TESTDB</db.url>
+        <db.user>db2inst1</db.user>
+        <db.pass>secret</db.pass>
+        <db.collection>APP</db.collection>
+    </properties>
+
+    <dependencies>
+        <!-- Deutsch:
+             DB2 JDBC-Treiber und SQLJ-Runtime.
+             Müssen zuvor manuell ins lokale Maven-Repository installiert werden,
+             da sie nicht in Maven Central verfügbar sind.
+        -->
+        <dependency>
+            <groupId>com.ibm.db2</groupId>
+            <artifactId>db2jcc4</artifactId>
+            <version>12.1.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.db2</groupId>
+            <artifactId>sqlj4</artifactId>
+            <version>12.1.2</version>
+            <type>zip</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Deutsch:
+             Optionale Laufzeitabhängigkeiten (Spring Boot + HikariCP),
+             nur für Demonstrationszwecke im Service-Layer.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <version>3.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Deutsch:
+                 AntRun-Plugin wird verwendet, um sqlj-Befehle direkt auszuführen.
+                 Vorteil: funktioniert auf Windows und Linux ohne Bash/CRLF-Probleme.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <!-- Deutsch:
+                         Offline-Übersetzung (kein Checker, keine DB-Verbindung).
+                         Dies ist die Standardausführung ohne Profil.
+                    -->
+                    <execution>
+                        <id>translate-sqlj-offline</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target name="sqlj-offline">
+                                <mkdir dir="${sqlj.generated.dir}" />
+                                <!-- Deutsch: Prüfe, ob der Übersetzer existiert (nur unter Windows sinnvoll). -->
+                                <condition property="is.windows">
+                                    <os family="windows"/>
+                                </condition>
+                                <condition property="sqlj.exists">
+                                    <and>
+                                        <isset property="is.windows"/>
+                                        <available file="${sqlj.exec}"/>
+                                    </and>
+                                </condition>
+                                <!-- Optional: Wenn Windows + Datei fehlt, sauberer Fehler -->
+                                <fail message="SQLJ-Übersetzer nicht gefunden: ${sqlj.exec}. Bitte -Dsqlj.exec=... korrekt setzen."
+                                      unless="sqlj.exists">
+                                    <condition><isset property="is.windows"/></condition>
+                                </fail>
+                                <!-- Windows: über cmd.exe starten (Batch) -->
+                                <apply osfamily="windows" executable="cmd" vmlauncher="false" parallel="false" failonerror="true">
+                                    <arg value="/c"/>
+                                    <arg value="${sqlj.exec}"/>
+                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
+                                    <arg value="-status"/>
+                                    <arg value="-noChecker"/>
+                                    <arg value="-profile"/><arg value="db2"/>
+                                    <arg value="-collection"/><arg value="${db.collection}"/>
+                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
+                                        <include name="**/*.sqlj"/>
+                                    </fileset>
+                                </apply>
+
+                                <!-- Unix/Mac: Binary direkt -->
+                                <apply osfamily="unix" executable="${sqlj.exec}" parallel="false" failonerror="true">
+                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
+                                    <arg value="-status"/>
+                                    <arg value="-noChecker"/>
+                                    <arg value="-profile"/><arg value="db2"/>
+                                    <arg value="-collection"/><arg value="${db.collection}"/>
+                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
+                                        <include name="**/*.sqlj"/>
+                                    </fileset>
+                                </apply>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <!-- Deutsch:
+                         Online-Übersetzung (mit Checker, benötigt DB-Verbindung).
+                         Diese Execution ist standardmäßig deaktiviert (skip=true),
+                         wird aber im Profil sqlj-online aktiviert.
+                    -->
+                    <execution>
+                        <id>translate-sqlj-online</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <target name="sqlj-online">
+                                <mkdir dir="${sqlj.generated.dir}" />
+
+                                <condition property="is.windows">
+                                    <os family="windows"/>
+                                </condition>
+                                <condition property="sqlj.exists">
+                                    <and>
+                                        <isset property="is.windows"/>
+                                        <available file="${sqlj.exec}"/>
+                                    </and>
+                                </condition>
+                                <fail message="SQLJ-Übersetzer nicht gefunden: ${sqlj.exec}. Bitte -Dsqlj.exec=... korrekt setzen."
+                                      unless="sqlj.exists">
+                                    <condition><isset property="is.windows"/></condition>
+                                </fail>
+
+                                <!-- Windows -->
+                                <apply osfamily="windows" executable="cmd" vmlauncher="false" parallel="false" failonerror="true">
+                                    <arg value="/c"/>
+                                    <arg value="${sqlj.exec}"/>
+                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
+                                    <arg value="-status"/>
+                                    <arg value="-url"/><arg value="${db.url}"/>
+                                    <arg value="-user"/><arg value="${db.user}"/>
+                                    <arg value="-password"/><arg value="${db.pass}"/>
+                                    <arg value="-profile"/><arg value="db2"/>
+                                    <arg value="-collection"/><arg value="${db.collection}"/>
+                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
+                                        <include name="**/*.sqlj"/>
+                                    </fileset>
+                                </apply>
+
+                                <!-- Unix/Mac -->
+                                <apply osfamily="unix" executable="${sqlj.exec}" parallel="false" failonerror="true">
+                                    <arg value="-d"/><arg value="${sqlj.generated.dir}"/>
+                                    <arg value="-status"/>
+                                    <arg value="-url"/><arg value="${db.url}"/>
+                                    <arg value="-user"/><arg value="${db.user}"/>
+                                    <arg value="-password"/><arg value="${db.pass}"/>
+                                    <arg value="-profile"/><arg value="db2"/>
+                                    <arg value="-collection"/><arg value="${db.collection}"/>
+                                    <fileset dir="src/main/sqlj" erroronmissingdir="false">
+                                        <include name="**/*.sqlj"/>
+                                    </fileset>
+                                </apply>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Deutsch:
+                 Stellt sicher, dass die generierten SQLJ-Sourcen auch
+                 vom Compiler berücksichtigt werden.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-sqlj-generated-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>add-source</goal></goals>
+                        <configuration>
+                            <sources>
+                                <source>${sqlj.generated.dir}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Deutsch:
+                 Standard-Compiler-Plugin für Java 17.
+            -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>17</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Deutsch:
+         Profil für die Online-Übersetzung mit Checker.
+         Aktivieren mit:
+           mvn clean package -Psqlj-online -Ddb.url=... -Ddb.user=... -Ddb.pass=...
+    -->
+    <profiles>
+        <profile>
+            <id>sqlj-online</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>translate-sqlj-online</id>
+                                <configuration>
+                                    <skip>false</skip>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>translate-sqlj-offline</id>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

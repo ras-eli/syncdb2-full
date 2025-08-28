@@ -1,0 +1,25 @@
+#sqlj 1.5
+package osplus.syncdb2.sqlj;
+
+import java.sql.*;
+
+/*
+ * Deutsch:
+ *  Insert in PERSON(ID, NAME).
+ */
+public class PersonInsert {
+  private final int id;
+  private final String name;
+
+  public PersonInsert(int id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
+  public int execute(Connection conn) throws SQLException {
+    int affected = 0;
+    #sql { INSERT INTO PERSON (ID, NAME) VALUES (:id, :name) };
+    // Deutsch: SQLJ setzt affected rows nicht automatisch; optional könnte man SELECT FROM FINAL TABLE nutzen.
+    return affected;
+  }
+}

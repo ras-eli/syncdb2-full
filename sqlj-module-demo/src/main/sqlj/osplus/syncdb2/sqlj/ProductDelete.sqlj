@@ -1,0 +1,22 @@
+#sqlj 1.5
+package osplus.syncdb2.sqlj;
+
+import java.sql.*;
+
+/*
+ * Deutsch:
+ *  Delete aus PRODUCT nach ID.
+ */
+public class ProductDelete {
+  private final int id;
+
+  public ProductDelete(int id) {
+    this.id = id;
+  }
+
+  public int execute(Connection conn) throws SQLException {
+    int affected = 0;
+    #sql { DELETE FROM PRODUCT WHERE ID = :id };
+    return affected;
+  }
+}

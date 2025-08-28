@@ -1,0 +1,24 @@
+#sqlj 1.5
+package osplus.syncdb2.sqlj;
+
+import java.sql.*;
+
+/*
+ * Deutsch:
+ *  Update NAME in PERSON nach ID.
+ */
+public class PersonUpdate {
+  private final int id;
+  private final String name;
+
+  public PersonUpdate(int id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
+  public int execute(Connection conn) throws SQLException {
+    int affected = 0;
+    #sql { UPDATE PERSON SET NAME = :name WHERE ID = :id };
+    return affected;
+  }
+}

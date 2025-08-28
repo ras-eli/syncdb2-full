@@ -1,0 +1,22 @@
+#sqlj 1.5
+package osplus.syncdb2.sqlj;
+
+import java.sql.*;
+
+/*
+ * Deutsch:
+ *  Delete aus PERSON nach ID.
+ */
+public class PersonDelete {
+  private final int id;
+
+  public PersonDelete(int id) {
+    this.id = id;
+  }
+
+  public int execute(Connection conn) throws SQLException {
+    int affected = 0;
+    #sql { DELETE FROM PERSON WHERE ID = :id };
+    return affected;
+  }
+}

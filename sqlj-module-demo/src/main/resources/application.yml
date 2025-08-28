@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:db2://localhost:50000/TESTDB
+    username: db2inst1
+    password: secret
+    driver-class-name: com.ibm.db2.jcc.DB2Driver
+  hikari:
+    maximum-pool-size: 5

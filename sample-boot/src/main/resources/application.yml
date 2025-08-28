@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:sampleboot;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+logging.level.osplus.syncdb2: INFO
+
+syncdb2:
+  mq:
+    send:
+      procedure-name: SEND_TO_MQ
+    read:
+      procedure-name: READ_FROM_MQ
+      batch-size: 50
+      fixed-delay: 2000
+  logging:
+    masked-params: [ "password", "iban", "cardNumber" ]
