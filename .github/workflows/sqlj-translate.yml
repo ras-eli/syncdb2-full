@@ -4,7 +4,7 @@ on:
   workflow_dispatch:         # Deutsch: Manuelle Ausführung über die Actions-UI
   push:
     paths:
-      - "src/main/sqlj/**"   # Deutsch: Bei Änderungen an .sqlj-Dateien automatisch starten
+      - "sqlj-module-demo/src/main/sqlj/**"   # Deutsch: Bei Änderungen an .sqlj-Dateien automatisch starten
 
 permissions:
   contents: write            # Deutsch: Erlaubt Commit/Push mit GITHUB_TOKEN
@@ -25,16 +25,16 @@ jobs:
       - name: Translate SQLJ in Docker (offline, no checker)
         run: |
           # Deutsch: Zielordner vorbereiten
-          mkdir -p src/main/generated-sources/sqlj
+          mkdir -p src/sqlj-module-demo/main/generated-sources/sqlj
           # Deutsch: Container starten, EntryPoint überschreiben, Lizenz akzeptieren
           docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" ibmcom/db2:11.5.8.0 -lc '
             set -e
-            mkdir -p /work/src/main/generated-sources/sqlj
+            mkdir -p /work/sqlj-module-demo/src/main/generated-sources/sqlj
             if [ -d /work/src/main/sqlj ]; then
               # Deutsch: Alle .sqlj-Dateien offline (ohne DB-Checker) übersetzen
-              find /work/src/main/sqlj -name "*.sqlj" -print0 | \
+              find /work/sqlj-module-demo/src/main/sqlj -name "*.sqlj" -print0 | \
               xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
-                -d /work/src/main/generated-sources/sqlj \
+                -d /work/sqlj-module-demo/src/main/generated-sources/sqlj \
                 -status -noChecker -profile db2 -collection APP "{}"
             else
               echo "No src/main/sqlj directory found; skipping."
@@ -51,7 +51,7 @@ jobs:
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             # Deutsch: Nur generierte Quellen committen
-            git add src/main/generated-sources/sqlj
+            git add src/sqlj-module-demo/main/generated-sources/sqlj
             git commit -m "ci: translate SQLJ -> Java (offline)"
             git push
           else
