@@ -25,7 +25,7 @@ jobs:
       - name: Translate SQLJ in Docker (offline, no checker)
         run: |
           mkdir -p src/main/generated-sources/sqlj
-          docker run --rm  -e LICENSE=accept  -v "$PWD:/work" ibmcom/db2:11.5.8.0 bash -lc '
+          docker run --rm  --entrypoint /bin/bash  -e LICENSE=accept  -v "$PWD:/work" ibmcom/db2:11.5.8.0 bash -lc '
             set -e
             mkdir -p /work/src/main/generated-sources/sqlj
             if [ -d /work/src/main/sqlj ]; then
