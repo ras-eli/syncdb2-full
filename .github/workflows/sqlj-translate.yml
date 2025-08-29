@@ -26,17 +26,26 @@ jobs:
         run: |
           # Deutsch: Zielordner im Modul vorbereiten
           mkdir -p sqlj-module-demo/src/main/generated-sources/sqlj
-          # Deutsch: Container mit eigenem Image starten – als root, EntryPoint überschreiben
+
+          # Deutsch: Container starten – als root, EntryPoint überschreiben
           docker run --rm --user root --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" sqlj-translator -lc '
             set -e
+
+            # Deutsch: DB2-Umgebung für den SQLJ-Translator setzen
+            export DB2DIR=/opt/ibm/db2/V11.5
+            export CLASSPATH="$DB2DIR/java/sqlj.zip:$DB2DIR/java/runtime.zip:$DB2DIR/java/db2jcc4.jar:$DB2DIR/java/db2jcc.jar:$DB2DIR/java/db2jcc_license_cu.jar"
+
+            # Deutsch: Modulpfade
             MOD="/work/sqlj-module-demo"
             OUT="$MOD/src/main/generated-sources/sqlj"
             SRC="$MOD/src/main/sqlj"
+
             mkdir -p "$OUT"
+
             if [ -d "$SRC" ]; then
               # Deutsch: Alle .sqlj-Dateien offline übersetzen
               find "$SRC" -name "*.sqlj" -print0 | \
-              xargs -0 -I{} /opt/ibm/db2/V11.5/bin/sqlj \
+              xargs -0 -I{} $DB2DIR/bin/sqlj \
                 -d "$OUT" \
                 -status -noChecker -profile db2 -collection APP "{}"
             else
