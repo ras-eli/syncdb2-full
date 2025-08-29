@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Deutsch: volle Historie (saubere Commits)
+          fetch-depth: 0     # Deutsch: vollständige Historie
 
       - name: Build custom translator image
         run: docker build -t sqlj-translator -f .github/sqlj-translator.Dockerfile .
@@ -26,8 +26,8 @@ jobs:
         run: |
           # Deutsch: Zielordner im Modul vorbereiten
           mkdir -p sqlj-module-demo/src/main/generated-sources/sqlj
-          # Deutsch: Container mit unserem Image starten (ohne DB2-Init dank EntryPoint-Override)
-          docker run --rm --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" sqlj-translator -lc '
+          # Deutsch: Container mit eigenem Image starten – als root, EntryPoint überschreiben
+          docker run --rm --user root --entrypoint /bin/bash -e LICENSE=accept -v "$PWD:/work" sqlj-translator -lc '
             set -e
             MOD="/work/sqlj-module-demo"
             OUT="$MOD/src/main/generated-sources/sqlj"
@@ -45,7 +45,7 @@ jobs:
           '
 
       - name: Show changes
-        run: git status --porcelain   # Deutsch: Änderungen auflisten
+        run: git status --porcelain   # Deutsch: Änderungen anzeigen
 
       - name: Commit & Push if generated sources changed
         run: |
